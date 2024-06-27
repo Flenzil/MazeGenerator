@@ -1,0 +1,48 @@
+body {
+    font-size: 20px;
+    font-family: courier;
+}
+
+
+#flex-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+table {
+    width:500px;
+    height: 500px;
+    border : 0px;
+    border-collapse: collapse;
+}
+
+#maze-button {
+    padding: 10px;
+    margin: 10px;
+    font-size: 20px;
+    font-family: courier;
+}
+
+td.left {
+    border-left : 3px solid black;
+}
+
+td.right {
+    border-right : 3px solid black;
+}
+
+td.top {
+    border-top :3px solid black;
+}
+
+td.bottom {
+    border-bottom : 3px solid black;
+}
+
+td.clear {
+    border : 0px
+
+}

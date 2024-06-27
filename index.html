@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+
+<html>
+    <header>
+        <script src="maze_maker.js" defer></script>
+        <link rel="stylesheet" type="text/css" href="styles.css" />
+    </header>
+    <body onload="buildMaze()">
+        <div id="flex-container">
+            <h1>THE MAZE</h1>
+            <table id="maze"></table>
+            <div>
+                <label for="maze-size">Maze Size: </label>
+                <input type="number" min="1" max="100" value="10" id="maze-size">
+                <button onclick="buildMaze()" id="maze-button">New Maze!</button>
+            </div>
+        </div>
+    </body>
+</html>
