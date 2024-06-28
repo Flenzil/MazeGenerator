@@ -1,19 +1,10 @@
-// I would rather this not be a global variable but for a programme this simple,
-// I think this is the most intuitive soltion. For a bigger project, I would 
-// consider perhaps modularising, creating a class with this variable within
-// the scope or moving it and other variables to a config file.
-let size = 0;
+let size = 0; // square size of maze
 
+/**
+ * Main function. Builds solvable maze and updates table in html to reflect
+ * the path.
+*/
 function buildMaze() {
-
-    // The maze is treated as a grid of cells size x size large. Starting
-    // at a random cell, one of its neighbors is chosen at random. Then the
-    // edge between those two cells is removed, creating a path. This continues
-    // until a cell is reached that has previously visited neighbors. Then 
-    // the cell is removed from the visitedCells array and added to the 
-    // closedCells array and is never visited again. The algorithm then steps
-    // back to the previous cell and tries a different random direction. 
-    // It terminates when the visitedCells array is empty.
 
     // Initialise and reset 
     const visitedCells = [];
@@ -48,6 +39,10 @@ function buildMaze() {
     removeCellEdge(size - 1, Math.floor(Math.random() * size), "right")
 }
 
+/**
+ * Create table in document with all edges intact to be removed as maze
+ * progresses.
+*/
 function createTable() {
     // Maze is displayed as a table where the edges of each cell in the table
     // are selectively hidden to form the walls of the maze.
@@ -61,14 +56,36 @@ function createTable() {
     }
 }
 
+/**
+ * Starting position for algorithm
+ * @typedef {Object} cell
+ * @property {number} x position of cell
+ * @property {number} y position of cell
+ *
+ * @returns {cell}
+*/
 function randomGridPosition() {
-    // Starting position for algorithm
     return {
         x: Math.floor(Math.random() * size),
         y: Math.floor(Math.random() * size)
     };
 }
 
+/**
+    * Find top, bottom, left and right neighbors of cell in grid.
+    * Selects only valid cells i.e inside grid, not in visitedCells or
+    * closedCells.
+    *
+    * @param {number} x - x position of cell
+    * @param {number} y - y position of cell
+    * @param {Array{Object}} visitedCells - stack of previously visited cells
+    * @param {Array{Object}} closedCells - stack of cells out of consideration.
+    *
+    * @typedef {Object} neighbors
+    * @property {Object} neighbors.direction - cell object for neighbor in direction
+    *
+    * @returns {neighbors} - neighboring cells
+*/
 function findNeighbors(x, y, visitedCells, closedCells) {
     // Creates an object containing the x and y positions of
     // the 4 neighbor cells. Removes already visited cells,
@@ -92,12 +109,26 @@ function findNeighbors(x, y, visitedCells, closedCells) {
     return neighbors;
 }
 
+/**
+ * Check if cell is inside the grid
+ * @param {number} x - x position of cell
+ * @param {number} y - y position of cell
+ *
+ * @returns {boolean} True if cell is inside grid, else false.
+*/
 function isInsideGrid(x, y) {
     return x < size && x >= 0 && y < size && y >= 0;
 }
 
+/**
+ * Helper function for matching a cell in an array
+ *
+ * @param {Array} array - array of cells
+ * @param {Object} object - a cell.
+ *
+ * @returns {boolean} True if array contains cell, else false.
+*/
 function arrayContainsOject(array, object) {
-    // Helper function for matching a cell i.e an object with 
     // an x and y coordinate, within an array of such objects.
     for (let i = 0; i < array.length; i++) {
         if (array[i].x === object.x && array[i].y === object.y) {
@@ -107,13 +138,30 @@ function arrayContainsOject(array, object) {
     return false;
 }
 
-function randomDirection(origin) {
+/**
+ * Select cell in random direction from array.
+ *
+ * @typedef {Object} neighbors
+ * @property {Object} neighbors.direction - cell object for neighbor in direction
+ *
+ * @param {neighbors} neighbors - object containing potential next steps in algorithm.
+ *
+ * @returns {string} the direction that the algorithm will explore next. 
+*/
+function randomDirection(neighbors) {
     // Selects next step in the algorithm in a random direction.
-    keys = Object.keys(origin);
+    keys = Object.keys(neighbors);
     return keys[Math.floor(keys.length * Math.random())];
 }
 
 
+/**
+ * Remove edge of cell in order to carve maze path
+ * 
+ * @param {number} x - x position of cell
+ * @param {number} y - y position of cell
+ * @param {"top" | "bottom" | "left" | "right"} edge - edge to remove
+ */
 function removeCellEdge(x, y, edge) {
     // Removes edge of cell at (x,y).
     document.getElementById("maze")
@@ -122,10 +170,16 @@ function removeCellEdge(x, y, edge) {
         .classList.remove(edge);
 }
 
+/**
+ * Each cell is double-walled e.g a cell shares its left edge with its
+ * neighbors right edge. Both must be removed to create a path, so this 
+ * returns the opposite side of the given direction.
+ *
+ * @param {"top" | "bottom" | "left" | "right"} direction
+ *
+ * @returns {"bottom" | "top" | "right" | "left"} opposite direction.
+*/
 function oppositeDirection(direction) {
-    // Each cell is double-walled e.g a cell shares its left edge with its
-    // neighbors right edge. Both must be removed to create a path, so this 
-    // returns the opposite side of the given direction.
     switch (direction) {
         case "top":
             return "bottom";
