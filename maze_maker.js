@@ -6,10 +6,14 @@ let size = 0; // square size of maze
 */
 function buildMaze() {
 
-    // Initialise and reset 
+    // Initialise stack of (x,y) coordinates
     const visitedCells = [];
     const closedCells = [];
+
+    // Set size to user defined value
     size = Math.max(1, Math.min(document.getElementById("maze-size").value, 100));
+
+    // Clear table
     document.getElementById("maze").innerHTML = "";
 
     createTable();
