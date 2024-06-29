@@ -3,7 +3,7 @@
 To run, simply open index.html in a broswer window. Choose a maze size (1-100) and click New Maze
 to generate a random maze.
 
-![screen](screen.png)
+![screen](Screen.PNG)
 
 # Implementation
 
