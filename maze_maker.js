@@ -1,4 +1,5 @@
-let size = 0; // square size of maze
+const MIN_MAZE_SIZE = 1;
+const MAX_MAZE_SIZE = 100;
 
 /**
  * Main function. Builds solvable maze and updates table in html to reflect
@@ -6,24 +7,26 @@ let size = 0; // square size of maze
 */
 function buildMaze() {
 
-    // Initialise stack of (x,y) coordinates
+    // Initialise stacks
     const visitedCells = [];
     const closedCells = [];
 
     // Set size to user defined value
-    size = Math.max(1, Math.min(document.getElementById("maze-size").value, 100));
+    let mazeSize = clamp(document.getElementById("maze-size").value, MIN_MAZE_SIZE, MAX_MAZE_SIZE);
 
-    // Clear table
-    document.getElementById("maze").innerHTML = "";
+    // Maze is constructed using a table and selectively hiding edges to
+    // visualise the path.
+    createSquareTable(mazeSize);
 
-    createTable();
-
-    visitedCells.push(randomGridPosition());
+    // Randomly choose starting point
+    visitedCells.push(randomGridPosition(mazeSize));
 
     while (visitedCells.length > 0) {
         let cell = visitedCells[visitedCells.length - 1];
-        let neighbors = findNeighbors(cell.x, cell.y, visitedCells, closedCells);
+        let neighbors = findNeighbors(cell.x, cell.y, visitedCells, closedCells, mazeSize);
 
+        // All neighbors explored, never visit this cell again.
+        // Step backwards to previous cell.
         if (Object.keys(neighbors).length === 0) {
             closedCells.push(visitedCells.pop());
             continue;
@@ -35,21 +38,31 @@ function buildMaze() {
         visitedCells.push(nextCell);
 
         removeCellEdge(cell.x, cell.y, direction)
-        removeCellEdge(nextCell.x, nextCell.y, oppositeDirection(direction))
+
+        //Each cell is double-walled e.g a cell shares its left edge with its
+        //neighbors right edge. Both must be removed to create a path.
+        removeCellEdge(nextCell.x, nextCell.y, getOppositeDirection(direction))
     }
 
     // Create entrance and exit
-    removeCellEdge(0, Math.floor(Math.random() * size), "left")
-    removeCellEdge(size - 1, Math.floor(Math.random() * size), "right")
+    removeCellEdge(0, Math.floor(Math.random() * mazeSize), "left")
+    removeCellEdge(mazeSize - 1, Math.floor(Math.random() * mazeSize), "right")
+}
+
+function clamp(value, min, max) {
+    return Math.min(max, Math.max(value, min));
 }
 
 /**
  * Create table in document with all edges intact to be removed as maze
  * progresses.
+ *
+ * @param {number} size - number of rows/cols in table.
 */
-function createTable() {
-    // Maze is displayed as a table where the edges of each cell in the table
-    // are selectively hidden to form the walls of the maze.
+function createSquareTable(size) {
+    // Clear table
+    document.getElementById("maze").innerHTML = "";
+
     table = document.getElementById("maze");
 
     for (let i = 0; i < size; i++) {
@@ -61,17 +74,18 @@ function createTable() {
 }
 
 /**
- * Starting position for algorithm
+ * @param {number} gridSize - Size of square grid
+ *
  * @typedef {Object} cell
  * @property {number} x position of cell
  * @property {number} y position of cell
  *
  * @returns {cell}
 */
-function randomGridPosition() {
+function randomGridPosition(gridSize) {
     return {
-        x: Math.floor(Math.random() * size),
-        y: Math.floor(Math.random() * size)
+        x: Math.floor(Math.random() * gridSize),
+        y: Math.floor(Math.random() * gridSize)
     };
 }
 
@@ -84,17 +98,14 @@ function randomGridPosition() {
     * @param {number} y - y position of cell
     * @param {Array{Object}} visitedCells - stack of previously visited cells
     * @param {Array{Object}} closedCells - stack of cells out of consideration.
+    * @param {number} gridSize - size of square grid.
     *
     * @typedef {Object} neighbors
     * @property {Object} neighbors.direction - cell object for neighbor in direction
     *
     * @returns {neighbors} - neighboring cells
 */
-function findNeighbors(x, y, visitedCells, closedCells) {
-    // Creates an object containing the x and y positions of
-    // the 4 neighbor cells. Removes already visited cells,
-    // cells outside of the grid and cells on the closed 
-    // list.
+function findNeighbors(x, y, visitedCells, closedCells, gridSize) {
     let neighbors = {
         right: { x: x + 1, y: y },
         left: { x: x - 1, y: y },
@@ -103,7 +114,7 @@ function findNeighbors(x, y, visitedCells, closedCells) {
     }
 
     for (let n in neighbors) {
-        if (!isInsideGrid(neighbors[n].x, neighbors[n].y)
+        if (!isInsideGrid(neighbors[n].x, neighbors[n].y, gridSize)
             || arrayContainsOject(closedCells, neighbors[n])
             || arrayContainsOject(visitedCells, neighbors[n])) {
             delete neighbors[n];
@@ -114,14 +125,14 @@ function findNeighbors(x, y, visitedCells, closedCells) {
 }
 
 /**
- * Check if cell is inside the grid
- * @param {number} x - x position of cell
- * @param {number} y - y position of cell
+ * @param {number} x - x position of cell.
+ * @param {number} y - y position of cell.
+ * @param {number} gridSize - size of square grid.
  *
  * @returns {boolean} True if cell is inside grid, else false.
 */
-function isInsideGrid(x, y) {
-    return x < size && x >= 0 && y < size && y >= 0;
+function isInsideGrid(x, y, gridSize) {
+    return x < gridSize && x >= 0 && y < gridSize && y >= 0;
 }
 
 /**
@@ -133,7 +144,6 @@ function isInsideGrid(x, y) {
  * @returns {boolean} True if array contains cell, else false.
 */
 function arrayContainsOject(array, object) {
-    // an x and y coordinate, within an array of such objects.
     for (let i = 0; i < array.length; i++) {
         if (array[i].x === object.x && array[i].y === object.y) {
             return true;
@@ -143,8 +153,6 @@ function arrayContainsOject(array, object) {
 }
 
 /**
- * Select cell in random direction from array.
- *
  * @typedef {Object} neighbors
  * @property {Object} neighbors.direction - cell object for neighbor in direction
  *
@@ -153,21 +161,17 @@ function arrayContainsOject(array, object) {
  * @returns {string} the direction that the algorithm will explore next. 
 */
 function randomDirection(neighbors) {
-    // Selects next step in the algorithm in a random direction.
     keys = Object.keys(neighbors);
     return keys[Math.floor(keys.length * Math.random())];
 }
 
 
 /**
- * Remove edge of cell in order to carve maze path
- * 
  * @param {number} x - x position of cell
  * @param {number} y - y position of cell
  * @param {"top" | "bottom" | "left" | "right"} edge - edge to remove
  */
 function removeCellEdge(x, y, edge) {
-    // Removes edge of cell at (x,y).
     document.getElementById("maze")
         .rows.item(y)
         .cells.item(x)
@@ -175,15 +179,11 @@ function removeCellEdge(x, y, edge) {
 }
 
 /**
- * Each cell is double-walled e.g a cell shares its left edge with its
- * neighbors right edge. Both must be removed to create a path, so this 
- * returns the opposite side of the given direction.
- *
  * @param {"top" | "bottom" | "left" | "right"} direction
  *
  * @returns {"bottom" | "top" | "right" | "left"} opposite direction.
 */
-function oppositeDirection(direction) {
+function getOppositeDirection(direction) {
     switch (direction) {
         case "top":
             return "bottom";
