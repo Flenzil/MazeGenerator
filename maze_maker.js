@@ -1,5 +1,6 @@
 const MIN_MAZE_SIZE = 1;
 const MAX_MAZE_SIZE = 100;
+const DEFAULT_MAZE_SIZE = 10;
 
 /**
  * Main function. Builds solvable maze and updates table in html to reflect
@@ -12,7 +13,12 @@ function buildMaze() {
     const closedCells = [];
 
     // Set size to user defined value
-    let mazeSize = clamp(document.getElementById("maze-size").value, MIN_MAZE_SIZE, MAX_MAZE_SIZE);
+    let mazeSize = clamp(document.getElementById("maze-size").valueAsNumber, MIN_MAZE_SIZE, MAX_MAZE_SIZE);
+
+    // If user has inputted non-number, set to default value instead.
+    if (isNaN(mazeSize)) {
+        mazeSize = DEFAULT_MAZE_SIZE;
+    }
 
     // Maze is constructed using a table and selectively hiding edges to
     // visualise the path.
@@ -60,7 +66,6 @@ function clamp(value, min, max) {
  * @param {number} size - number of rows/cols in table.
 */
 function createSquareTable(size) {
-    // Clear table
     document.getElementById("maze").innerHTML = "";
 
     table = document.getElementById("maze");

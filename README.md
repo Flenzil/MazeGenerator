@@ -1,3 +1,5 @@
+# Sam Neale Maze Challenge for Flare
+
 # Instructions
 
 To run, simply open index.html in a broswer window. Choose a maze size (1-100) and click New Maze
